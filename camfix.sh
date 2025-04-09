@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to install Intel MIPI camera drivers on Ubuntu 24.04
+# Script to install Intel MIPI camera drivers on Ubuntu 24.04 (Individual OEM Archive - No Prompt)
 
 # Check if the script is run with sudo
 if [[ $EUID -ne 0 ]]; then
@@ -32,50 +32,27 @@ elif grep -q "Lunar Lake" /proc/cpuinfo || grep -q "Arrow Lake" /proc/cpuinfo; t
     linux-modules-usbio-oem-24.04b
 else
   echo "Your Intel platform is not explicitly listed for direct OEM metapackage support."
-  echo "You may need to try the development PPAs or the individual OEM archive method."
-  echo "Proceeding with caution..."
+  echo "Attempting installation from individual OEM archive (Dell)..."
 fi
 
-# Prompt user for development PPA or OEM archive installation
-read -p "Do you want to try installing the userspace stack from the development PPAs (unstable, use at your own risk)? [y/N]: " use_ppa
-if [[ "$use_ppa" =~ ^[Yy]$ ]]; then
-  echo "Adding development PPAs..."
-  sudo add-apt-repository ppa:oem-solutions-group/intel-ipu6
-  sudo add-apt-repository ppa:oem-solutions-group/intel-ipu7
+# Attempt installation from individual OEM archive (Dell)
+echo "Attempting installation from Dell OEM archive..."
+if grep -qi "Dell" /sys/devices/virtual/dmi/id/board_vendor; then
+  echo "Detected Dell system."
+  sudo apt install --yes ubuntu-oem-keyring
+  sudo add-apt-repository "deb http://dell.archive.canonical.com/ noble somerville"
   sudo apt update
   echo "Listing available camera HAL packages..."
   ubuntu-drivers list
-  read -p "Please enter the name of the appropriate libcamhal package (e.g., libcamhal-ipu6): " camhal_package
-  if [[ -n "$camhal_package" ]]; then
-    echo "Installing $camhal_package..."
-    sudo apt install --yes "$camhal_package"
-  else
-    echo "No libcamhal package specified. Skipping installation from PPA."
-  fi
+  # You might need to adjust this to automatically select the correct package
+  # based on your Dell system. For a general approach, we'll just instruct
+  # the user to install manually after the list.
+  echo "Please review the output above and manually install the appropriate libcamhal package"
+  echo "using a command like: sudo apt install <libcamhal-package-name>"
+  HAS_CAMHAL=0 # Indicate that automatic libcamhal installation is skipped
 else
-  read -p "Do you want to try installing the userspace stack from an individual OEM archive (Dell)? [y/N]: " use_oem
-  if [[ "$use_oem" =~ ^[Yy]$ ]]; then
-    echo "Attempting installation from OEM archive..."
-    if grep -qi "Dell" /sys/devices/virtual/dmi/id/board_vendor; then
-      echo "Detected Dell system."
-      sudo apt install --yes ubuntu-oem-keyring
-      sudo add-apt-repository "deb http://dell.archive.canonical.com/ noble somerville"
-      sudo apt update
-      echo "Listing available camera HAL packages..."
-      ubuntu-drivers list
-      read -p "Please enter the name of the appropriate libcamhal package (e.g., libcamhal0): " camhal_package_oem
-      if [[ -n "$camhal_package_oem" ]]; then
-        echo "Installing $camhal_package_oem..."
-        sudo apt install --yes "$camhal_package_oem"
-      else
-        echo "No libcamhal package specified for Dell. Skipping."
-      fi
-    else
-      echo "This system does not appear to be a Dell. Skipping Dell OEM archive installation."
-    fi
-  else
-    echo "Skipping userspace stack installation for now."
-  fi
+  echo "This system does not appear to be a Dell. Skipping Dell OEM archive installation."
+  HAS_CAMHAL=0 # Indicate that automatic libcamhal installation is skipped
 fi
 
 # Install v4l2loopback (workaround) and v4l2-relayd
@@ -86,7 +63,10 @@ sudo apt install --yes v4l2loopback v4l2-relayd
 echo "Installing gstreamer icamera plugins..."
 sudo apt install --yes gst-plugins-icamera
 
-echo "Installation process completed."
-echo "Please reboot your system for the kernel modules to be loaded."
+echo "Installation process partially completed."
+if [[ $HAS_CAMHAL -eq 0 ]]; then
+  echo "Please manually install the appropriate libcamhal package as instructed above."
+fi
+echo "Reboot your system for the kernel modules to be loaded."
 echo "You can try testing your camera with a web browser (gUM Test Page) after reboot."
 echo "Note: The 'gst-launch-1.0 icamerasrc ! autovideosink' command may not work on all platforms."
