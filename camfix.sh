@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to install Intel MIPI camera drivers on Ubuntu 24.04 (Individual OEM Archive - Dell Only - No Prompts)
+# Script to install Intel MIPI camera drivers on Ubuntu 24.04
 
 # Check if the script is run with sudo
 if [[ $EUID -ne 0 ]]; then
