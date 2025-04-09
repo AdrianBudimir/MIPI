@@ -48,8 +48,6 @@ if [[ -n "$found_package" ]]; then
   sudo apt install --yes gst-plugins-icamera
 
   echo "Installation completed. Please reboot your system."
-  echo "You can try testing your camera with a web browser (gUM Test Page) after reboot."
-  echo "Note: The 'gst-launch-1.0 icamerasrc ! autovideosink' command may not work on all platforms."
 
 else
   echo "No matching libcamhal package found in the list of available drivers."
