@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to install Intel MIPI camera drivers on Ubuntu 24.04 (Individual OEM Archive - No Prompt)
+# Script to install Intel MIPI camera drivers on Ubuntu 24.04 (Individual OEM Archive - Dell Only - No Prompts)
 
 # Check if the script is run with sudo
 if [[ $EUID -ne 0 ]]; then
@@ -32,11 +32,10 @@ elif grep -q "Lunar Lake" /proc/cpuinfo || grep -q "Arrow Lake" /proc/cpuinfo; t
     linux-modules-usbio-oem-24.04b
 else
   echo "Your Intel platform is not explicitly listed for direct OEM metapackage support."
-  echo "Attempting installation from individual OEM archive (Dell)..."
+  echo "Attempting installation from Dell OEM archive..."
 fi
 
-# Attempt installation from individual OEM archive (Dell)
-echo "Attempting installation from Dell OEM archive..."
+# Install from Dell OEM archive (No Prompts)
 if grep -qi "Dell" /sys/devices/virtual/dmi/id/board_vendor; then
   echo "Detected Dell system."
   sudo apt install --yes ubuntu-oem-keyring
@@ -44,15 +43,12 @@ if grep -qi "Dell" /sys/devices/virtual/dmi/id/board_vendor; then
   sudo apt update
   echo "Listing available camera HAL packages..."
   ubuntu-drivers list
-  # You might need to adjust this to automatically select the correct package
-  # based on your Dell system. For a general approach, we'll just instruct
-  # the user to install manually after the list.
   echo "Please review the output above and manually install the appropriate libcamhal package"
   echo "using a command like: sudo apt install <libcamhal-package-name>"
-  HAS_CAMHAL=0 # Indicate that automatic libcamhal installation is skipped
+  MANUAL_CAMHAL_REQUIRED=1
 else
   echo "This system does not appear to be a Dell. Skipping Dell OEM archive installation."
-  HAS_CAMHAL=0 # Indicate that automatic libcamhal installation is skipped
+  MANUAL_CAMHAL_REQUIRED=0
 fi
 
 # Install v4l2loopback (workaround) and v4l2-relayd
@@ -64,7 +60,7 @@ echo "Installing gstreamer icamera plugins..."
 sudo apt install --yes gst-plugins-icamera
 
 echo "Installation process partially completed."
-if [[ $HAS_CAMHAL -eq 0 ]]; then
+if [[ "$MANUAL_CAMHAL_REQUIRED" -eq 1 ]]; then
   echo "Please manually install the appropriate libcamhal package as instructed above."
 fi
 echo "Reboot your system for the kernel modules to be loaded."
