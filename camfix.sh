@@ -17,7 +17,7 @@ echo "Probing for available drivers using ubuntu-drivers list..."
 available_drivers=$(ubuntu-drivers list)
 
 # Define the list of target libcamhal packages
-target_packages=("libcamhal-ipu6" "libcamhal-ipu6ep" "libcamhal-ipu6epmtl" "libcamhal-ipu7x" "libcamhal-ipu75xa")
+target_packages=("libcamhal-ipu6" "libcamhal-ipu6ep" "libcamhal-ipu6epmtl" "libcamhal-ipu7x" "libcamhal-ipu75xa" "libcamhal0")
 
 found_package=""
 
