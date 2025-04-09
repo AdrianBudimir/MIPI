@@ -53,7 +53,7 @@ if [[ "$use_ppa" =~ ^[Yy]$ ]]; then
     echo "No libcamhal package specified. Skipping installation from PPA."
   fi
 else
-  read -p "Do you want to try installing the userspace stack from an individual OEM archive (Dell/Lenovo)? [y/N]: " use_oem
+  read -p "Do you want to try installing the userspace stack from an individual OEM archive (Dell)? [y/N]: " use_oem
   if [[ "$use_oem" =~ ^[Yy]$ ]]; then
     echo "Attempting installation from OEM archive..."
     if grep -qi "Dell" /sys/devices/virtual/dmi/id/board_vendor; then
@@ -70,22 +70,8 @@ else
       else
         echo "No libcamhal package specified for Dell. Skipping."
       fi
-    elif grep -qi "Lenovo" /sys/devices/virtual/dmi/id/board_vendor; then
-      echo "Detected Lenovo system."
-      sudo apt install --yes ubuntu-oem-keyring
-      sudo add-apt-repository "deb http://lenovo.archive.canonical.com/ noble sutton"
-      sudo apt update
-      echo "Listing available camera HAL packages..."
-      ubuntu-drivers list
-      read -p "Please enter the name of the appropriate libcamhal package (e.g., libcamhal0): " camhal_package_oem
-      if [[ -n "$camhal_package_oem" ]]; then
-        echo "Installing $camhal_package_oem..."
-        sudo apt install --yes "$camhal_package_oem"
-      else
-        echo "No libcamhal package specified for Lenovo. Skipping."
-      fi
     else
-      echo "This system does not appear to be a Dell or Lenovo. Skipping OEM archive installation."
+      echo "This system does not appear to be a Dell. Skipping Dell OEM archive installation."
     fi
   else
     echo "Skipping userspace stack installation for now."
